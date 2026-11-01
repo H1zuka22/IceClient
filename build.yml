@@ -1,0 +1,62 @@
+name: Build IceClient mod
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'iceclient-mod.zip'
+      - '.github/workflows/build.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Rozpakuj zrodla
+        run: |
+          test -f iceclient-mod.zip || { echo "Brak pliku iceclient-mod.zip w repozytorium"; exit 1; }
+          mkdir app
+          unzip -q iceclient-mod.zip -d app
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.12'
+
+      - name: Kompilacja i testy
+        working-directory: app
+        run: |
+          set -o pipefail
+          gradle build --stacktrace 2>&1 | tee ../build.log
+
+      - name: Zapisz log budowania
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
+
+      - name: Zapisz raporty testow
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: app/build/reports/tests
+          if-no-files-found: ignore
+
+      - name: Zapisz mod (.jar)
+        uses: actions/upload-artifact@v4
+        with:
+          name: iceclient-mod-jar
+          path: |
+            app/build/libs/*.jar
+            !app/build/libs/*-sources.jar

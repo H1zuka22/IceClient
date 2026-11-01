@@ -1,0 +1,7 @@
+{
+  "required": true,
+  "package": "pl.iceclient.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": ["MinecraftClientMixin", "PressableWidgetMixin", "ScreenMixin", "SplashOverlayMixin"],
+  "injectors": { "defaultRequire": 1 }
+}
